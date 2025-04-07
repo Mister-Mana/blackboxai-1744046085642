@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuperAdmin\SchoolClassController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SettingsController;
 
 // Authentication Routes
 Auth::routes();
@@ -9,6 +11,21 @@ Auth::routes();
 // Public Routes
 Route::get('/', function () {
     return view('welcome');
+});
+
+// Language Switching Route
+Route::get('language/{locale}', function ($locale) {
+    if (in_array($locale, ['en', 'fr', 'ln', 'sw', 'tsh', 'kg'])) {
+        session(['locale' => $locale]);
+    }
+    return back();
+})->name('language.switch');
+
+// Profile Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 // Super Admin Routes
@@ -23,7 +40,9 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('super-admin')->name('su
         Route::delete('/{class}', [SchoolClassController::class, 'destroy'])->name('destroy');
     });
 
-    // Other super-admin routes can be added here
+    // Settings Management
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
 });
 
 // Role-based Dashboard Routes
